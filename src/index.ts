@@ -1,31 +1,24 @@
 import * as ts from "typescript";
 import * as fs from "fs";
 
-const file = "test.ts";
-const program = ts.createProgram([file], {});
-const sourceFile = program.getSourceFile(file);
-const checker = program.getTypeChecker();
-
 interface VuetyComponent {
     className: string;
     name: string | undefined;
     provides: ProvidesField[];
     injects: ProvidesField[];
     props: ClassField[];
-    emits: string[];
+    // emits: string[];
 }
 
 interface ClassField {
     name: string;
     type: string;
-    defaultValue?: any;
+    // defaultValue?: any;
 }
 
 interface ProvidesField extends ClassField {
     field: string;
 }
-
-let Components: VuetyComponent[] = [];
 
 function getDecoratorName(decorator: ts.Decorator) {
     if (decorator.expression.kind === ts.SyntaxKind.CallExpression) {
@@ -60,16 +53,16 @@ function getComponentName(componentDecorator: ts.Decorator) {
     return undefined;
 }
 
-function processProp(prop: ts.PropertyDeclaration, decorator: ts.Decorator, propertyName: string, component: VuetyComponent) {
+function processProp(prop: ts.PropertyDeclaration, decorator: ts.Decorator, propertyName: string, component: VuetyComponent, checker: ts.TypeChecker) {
     // TODO: Get default value 
     component.props.push({
         name: propertyName,
-        defaultValue: undefined,
+        // defaultValue: undefined,
         type: checker.typeToString(checker.getTypeFromTypeNode(prop.type))
     });
 }
 
-function processProvideInject(prop: ts.PropertyDeclaration, decorator: ts.Decorator, propertyName: string, arr: ProvidesField[]) {
+function processProvideInject(prop: ts.PropertyDeclaration, decorator: ts.Decorator, propertyName: string, arr: ProvidesField[], checker: ts.TypeChecker) {
     let field = propertyName;
     if (decorator.expression.kind === ts.SyntaxKind.CallExpression) {
         const callExpression = decorator.expression as ts.CallExpression;
@@ -80,15 +73,15 @@ function processProvideInject(prop: ts.PropertyDeclaration, decorator: ts.Decora
     }
     arr.push({
         name: field,
-        defaultValue: undefined,
+        // defaultValue: undefined,
         type: checker.typeToString(checker.getTypeFromTypeNode(prop.type)),
         field: propertyName
     });
 }
 
-function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponent) {
+function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponent, checker: ts.TypeChecker) {
     for (const member of classNode.members) {
-        if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
+        if (member.kind === ts.SyntaxKind.PropertyDeclaration || member.kind === ts.SyntaxKind.GetAccessor) {
             const prop = member as ts.PropertyDeclaration;
             const propName = (member.name as ts.Identifier).text;
 
@@ -96,13 +89,13 @@ function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponen
                 const decoratorName = getDecoratorName(propertyDecorator);
                 switch (decoratorName) {
                     case "Prop":
-                        processProp(prop, propertyDecorator, propName, component);
+                        processProp(prop, propertyDecorator, propName, component, checker);
                         break;
                     case "Provide":
-                        processProvideInject(prop, propertyDecorator, propName, component.provides);
+                        processProvideInject(prop, propertyDecorator, propName, component.provides, checker);
                         break;
                     case "Inject":
-                        processProvideInject(prop, propertyDecorator, propName, component.injects);
+                        processProvideInject(prop, propertyDecorator, propName, component.injects, checker);
                         break;
                 }
             }
@@ -110,9 +103,8 @@ function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponen
     }
 }
 
-function walk(node: ts.Node) {
+function walk(node: ts.Node, checker: ts.TypeChecker, components: VuetyComponent[]) {
     if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-
         const classNode = node as ts.ClassDeclaration;
         if (classNode.decorators.length) {
             for (const classDecorator of classNode.decorators) {
@@ -126,15 +118,25 @@ function walk(node: ts.Node) {
                         props: [],
                         emits: []
                     };
-                    Components.push(current);
-                    processMembers(classNode, current);
+                    components.push(current);
+                    processMembers(classNode, current, checker);
                 }
             }
         }
     } else if ("statements" in node) {
-        node["statements"].forEach(walk);
+        node["statements"].forEach(n => walk(n, checker, components));
     }
 }
 
-walk(sourceFile);
-console.log(JSON.stringify(Components, null, "\t"));
+export function getDoc(file: string) {
+    const program = ts.createProgram([file], {});
+    const sourceFile = program.getSourceFile(file);
+    if (!sourceFile) {
+        throw new Error("File not found: '" + file + "'.");
+    }
+    const checker = program.getTypeChecker();
+
+    const components: VuetyComponent[] = [];
+    walk(sourceFile, checker, components);
+    return components;
+}

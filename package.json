@@ -7,13 +7,17 @@
     "typescript": "^2.3.2"
   },
   "devDependencies": {
+    "@types/chai": "^3.5.2",
+    "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.14",
+    "chai": "^3.5.0",
+    "mocha": "^3.3.0",
     "vue": "^2.3.0",
     "vuety": "^2.1.0-beta.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsc && node index.js"
+    "test": "tsc && mocha test/index.js --require chai",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC"

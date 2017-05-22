@@ -83,20 +83,21 @@ function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponen
     for (const member of classNode.members) {
         if (member.kind === ts.SyntaxKind.PropertyDeclaration || member.kind === ts.SyntaxKind.GetAccessor) {
             const prop = member as ts.PropertyDeclaration;
-            const propName = (member.name as ts.Identifier).text;
-
-            for (const propertyDecorator of prop.decorators) {
-                const decoratorName = getDecoratorName(propertyDecorator);
-                switch (decoratorName) {
-                    case "Prop":
-                        processProp(prop, propertyDecorator, propName, component, checker);
-                        break;
-                    case "Provide":
-                        processProvideInject(prop, propertyDecorator, propName, component.provides, checker);
-                        break;
-                    case "Inject":
-                        processProvideInject(prop, propertyDecorator, propName, component.injects, checker);
-                        break;
+            if (prop.decorators) {
+                const propName = (member.name as ts.Identifier).text;
+                for (const propertyDecorator of prop.decorators) {
+                    const decoratorName = getDecoratorName(propertyDecorator);
+                    switch (decoratorName) {
+                        case "Prop":
+                            processProp(prop, propertyDecorator, propName, component, checker);
+                            break;
+                        case "Provide":
+                            processProvideInject(prop, propertyDecorator, propName, component.provides, checker);
+                            break;
+                        case "Inject":
+                            processProvideInject(prop, propertyDecorator, propName, component.injects, checker);
+                            break;
+                    }
                 }
             }
         }

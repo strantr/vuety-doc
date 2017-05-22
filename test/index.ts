@@ -4,7 +4,7 @@ import * as path from "path";
 import { exec } from "child_process";
 
 describe("Component", () => {
-    it("are extracted", () => {
+    it("get extracted", () => {
         const doc = getDoc(path.join(__dirname, "tests/component-basic.ts"));
         expect(doc.length).to.eq(2);
         expect(doc[0].className).to.eq("TestComponent1");
@@ -18,7 +18,7 @@ describe("Component", () => {
 });
 
 describe("Props", () => {
-    it("are extracted", () => {
+    it("get extracted", () => {
         const doc = getDoc(path.join(__dirname, "tests/props-basic.ts"));
         expect(doc[0].props.length).to.eq(2);
         expect(doc[0].props[0].name).to.eq("stringProp");

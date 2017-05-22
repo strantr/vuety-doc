@@ -1,3 +1,5 @@
+require('source-map-support').install();
+
 import { expect } from "chai";
 import { getDoc } from "../src";
 import * as path from "path";

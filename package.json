@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "command-line-args": "^4.0.4",
+    "recursive-readdir": "^2.1.1",
     "typescript": "^2.3.2"
   },
   "devDependencies": {

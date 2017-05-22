@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { getDoc } from "../src";
 import * as path from "path";
+import { exec } from "child_process";
 
 describe("Component", () => {
     it("are extracted", () => {
@@ -94,5 +95,58 @@ describe("Inject", () => {
         expect(doc[0].injects[0].field).to.eq("injectedField");
         expect(doc[0].injects[0].name).to.eq("aliased");
         expect(doc[0].injects[0].type).to.eq("string");
+    });
+});
+
+describe("CLI", () => {
+    it("accepts input as list of files", () => {
+        return new Promise((resolve, reject) => {
+            exec(`node .\\src\\cli -i ${path.resolve(__dirname, "tests\\component-basic.ts")} ${path.resolve(__dirname, "tests\\component-name.ts")} --stdout`, (error, stdout, stderr) => {
+                if (stderr || error) {
+                    reject(stderr || error);
+                } else {
+                    expect(JSON.stringify(JSON.parse(stdout))).to.eq(JSON.stringify([{
+                        "className": "TestComponent1", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent2", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent1", "name": "Testing", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent2", "name": "HelloWorld", "provides": [], "injects": [], "props": [], "emits": []
+                    }]));
+                    resolve();
+                }
+            });
+        });
+    });
+
+    it("accepts input as directory", () => {
+        return new Promise((resolve, reject) => {
+            exec(`node .\\src\\cli -i ${path.resolve(__dirname, "tests\\cli-dir")} --stdout`, (error, stdout, stderr) => {
+                if (stderr || error) {
+                    reject(stderr || error);
+                } else {
+                    console.log(stdout);
+                    expect(JSON.stringify(JSON.parse(stdout))).to.eq(JSON.stringify([{
+                        "className": "TestComponent1", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent2", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent1", "name": "Testing", "provides": [], "injects": [], "props": [], "emits": []
+                    }, {
+                        "className": "TestComponent2", "name": "HelloWorld", "provides": [], "injects": [], "props": [], "emits": []
+                    }]));
+                    resolve();
+                }
+            });
+        });
+    });
+
+    it("default output directory is cwd", () => {
+
+    });
+
+    it("output directory can be changed", () => {
+
     });
 });

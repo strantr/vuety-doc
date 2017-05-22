@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import * as fs from "fs";
 
-interface VuetyComponent {
+export interface VuetyComponent {
     className: string;
     name: string | undefined;
     provides: ProvidesField[];

@@ -17,6 +17,11 @@ describe("Component", () => {
         expect(doc[0].name).to.eq("Testing");
         expect(doc[1].name).to.eq("HelloWorld");
     });
+    it("extracts documentation", () => {
+        const doc = getDoc(path.join(__dirname, "tests/component-comment.ts"));
+        expect(doc[0].documentation).to.eq("Test comment");
+        expect(doc[1].documentation).to.be.undefined;
+    });
 });
 
 describe("Props", () => {
@@ -42,6 +47,11 @@ describe("Props", () => {
         const doc = getDoc(path.join(__dirname, "tests/props-complex.ts"));
         expect(doc[0].props.length).to.eq(1);
         expect(doc[0].props[0].type).to.eq("{ [k: string]: Partial<{ x: number; }>; }");
+    });
+    it("extracts documentation", () => {
+        const doc = getDoc(path.join(__dirname, "tests/props-comment.ts"));
+        expect(doc[0].props[0].documentation).to.eq("String Prop");
+        expect(doc[0].props[1].documentation).to.be.undefined;
     });
 });
 
@@ -81,6 +91,15 @@ describe("Provide", () => {
         expect(doc[0].provides[0].name).to.eq("provided");
         expect(doc[0].provides[0].type).to.eq("string");
     });
+    it("extracts documentation", () => {
+        const doc = getDoc(path.join(__dirname, "tests/provide-comment.ts"));
+        expect(doc[0].provides[0].name).to.eq("provided1");
+        expect(doc[0].provides[0].documentation).to.eq("P1");
+        expect(doc[0].provides[1].name).to.eq("provided2");
+        expect(doc[0].provides[1].documentation).to.eq("P2");
+        expect(doc[0].provides[2].name).to.eq("aliased");
+        expect(doc[0].provides[2].documentation).to.eq("P3");
+    });
 });
 
 describe("Inject", () => {
@@ -97,6 +116,13 @@ describe("Inject", () => {
         expect(doc[0].injects[0].field).to.eq("injectedField");
         expect(doc[0].injects[0].name).to.eq("aliased");
         expect(doc[0].injects[0].type).to.eq("string");
+    });
+    it("extracts documentation", () => {
+        const doc = getDoc(path.join(__dirname, "tests/inject-comment.ts"));
+        expect(doc[0].injects[0].name).to.eq("aliased");
+        expect(doc[0].injects[0].documentation).to.eq("I1");
+        expect(doc[0].injects[1].name).to.eq("inject2");
+        expect(doc[0].injects[1].documentation).to.eq("I2");
     });
 });
 

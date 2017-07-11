@@ -7,12 +7,14 @@ export interface VuetyComponent {
     provides: ProvidesField[];
     injects: ProvidesField[];
     props: ClassField[];
+    documentation?: string;
     // emits: string[];
 }
 
 interface ClassField {
     name: string;
     type: string;
+    documentation?: string;
     // defaultValue?: any;
 }
 
@@ -53,12 +55,26 @@ function getComponentName(componentDecorator: ts.Decorator) {
     return undefined;
 }
 
+function getDocumentation(node: ts.Node, checker: ts.TypeChecker): string {
+    let sym = checker.getSymbolAtLocation(node);
+    if (sym) {
+        const doc = sym.getDocumentationComment();
+        if (doc.length) {
+            return doc.map(d => d.text).join("\r\n");
+        }
+    }
+    return undefined;
+}
+
 function processProp(prop: ts.PropertyDeclaration, decorator: ts.Decorator, propertyName: string, component: VuetyComponent, checker: ts.TypeChecker) {
+
+
     // TODO: Get default value 
     component.props.push({
         name: propertyName,
         // defaultValue: undefined,
-        type: checker.typeToString(checker.getTypeFromTypeNode(prop.type))
+        type: checker.typeToString(checker.getTypeFromTypeNode(prop.type)),
+        documentation: getDocumentation(prop.name, checker)
     });
 }
 
@@ -75,7 +91,8 @@ function processProvideInject(prop: ts.PropertyDeclaration, decorator: ts.Decora
         name: field,
         // defaultValue: undefined,
         type: checker.typeToString(checker.getTypeFromTypeNode(prop.type)),
-        field: propertyName
+        field: propertyName,
+        documentation: getDocumentation(prop.name, checker)
     });
 }
 
@@ -117,7 +134,8 @@ function walk(node: ts.Node, checker: ts.TypeChecker, components: VuetyComponent
                         provides: [],
                         injects: [],
                         props: [],
-                        emits: []
+                        emits: [],
+                        documentation: getDocumentation(classNode.name, checker)
                     };
                     components.push(current);
                     processMembers(classNode, current, checker);

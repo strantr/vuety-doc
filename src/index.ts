@@ -107,7 +107,7 @@ function processMembers(classNode: ts.ClassDeclaration, component: VuetyComponen
 function walk(node: ts.Node, checker: ts.TypeChecker, components: VuetyComponent[]) {
     if (node.kind === ts.SyntaxKind.ClassDeclaration) {
         const classNode = node as ts.ClassDeclaration;
-        if (classNode.decorators.length) {
+        if (classNode.decorators && classNode.decorators.length) {
             for (const classDecorator of classNode.decorators) {
                 const name = getDecoratorName(classDecorator);
                 if (name === "Component") {

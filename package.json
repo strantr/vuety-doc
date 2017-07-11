@@ -23,5 +23,8 @@
     "build": "tsc"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bin":{
+    "vuety-doc": "./src/cli.js"
+  }
 }

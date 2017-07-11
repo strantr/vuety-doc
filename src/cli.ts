@@ -1,5 +1,6 @@
+#!/usr/bin/env node --harmony
 import { cwd } from "process";
-import { lstat } from "fs";
+import { lstat, writeFile, mkdir, exists } from "fs";
 import * as path from "path";
 import { getDoc, VuetyComponent } from "./";
 const commandLineArgs = require('command-line-args')
@@ -21,8 +22,14 @@ interface Options {
 
 const options = commandLineArgs(optionDefinitions) as Options;
 
-if (!options.input.length) {
+console.log(options);
+
+if (!options.input || !options.input.length) {
     throw new Error("No input files specified");
+}
+
+function exludeFile (file, stats) {
+    return !stats.isDirectory() && path.extname(file) !== ".ts";
 }
 
 const processing = options.input.map(i => {
@@ -33,14 +40,12 @@ const processing = options.input.map(i => {
             if (stats.isFile()) {
                 resolve(getDoc(path.resolve(i)));
             } else {
-                console.log("IS FOLDER", path.resolve(i));
-                recursive((i), ["*.*", function (a) { console.log(arguments); }], function (err, files: string[]) {
-                    console.log("xxx:", files);
+                recursive((i), [exludeFile], function (err, files: string[]) {
                     if (err) {
                         reject(err);
                     } else {
                         resolve([].concat.apply([], files.map(f => {
-                            return getDoc(path.resolve(i));
+                            return getDoc(path.resolve(f));
                         })));
                     }
                 });
@@ -50,5 +55,10 @@ const processing = options.input.map(i => {
 });
 
 Promise.all(processing).then(results => {
+    let output = JSON.stringify([].concat.apply([], results));
     console.log(JSON.stringify([].concat.apply([], results)));
+    if (options.output) {
+        if (!exists(cwd() + options.output)) mkdir(cwd() + options.output, err => { if(err) throw err; });
+        writeFile(cwd() + options.output + "/vuety-doc.json", output, err => { if (err) throw (err); });
+    }
 });

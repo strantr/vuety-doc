@@ -1,6 +1,6 @@
 #!/usr/bin/env node --harmony
 import { cwd } from "process";
-import { lstat, writeFile, mkdir, exists } from "fs";
+import { lstat, writeFile, mkdir } from "fs";
 import * as path from "path";
 import { getDoc, VuetyComponent } from "./";
 const commandLineArgs = require('command-line-args')
@@ -9,6 +9,7 @@ const recursive = require('recursive-readdir');
 const optionDefinitions = [
     { name: 'input', alias: 'i', type: String, multiple: true, default: true },
     { name: 'output', alias: 'o', type: String, defaultValue: cwd() },
+    { name: 'outputFile', alias: 'f', type: String, defaultValue: "vuety-doc.json"},
     { name: 'outputType', alias: 't', type: String },
     { name: 'stdout', type: Boolean }
 ];
@@ -16,6 +17,7 @@ const optionDefinitions = [
 interface Options {
     input: string[];
     output: string;
+    outputFile: string;
     outputType: "raw" | "markdown";
     stdout: boolean;
 }
@@ -56,7 +58,12 @@ Promise.all(processing).then(results => {
     let output = JSON.stringify([].concat.apply([], results));
     console.log(JSON.stringify([].concat.apply([], results)));
     if (options.output) {
-        if (!exists(cwd() + options.output)) mkdir(cwd() + options.output, err => { if(err) throw err; });
-        writeFile(cwd() + options.output + "/vuety-doc.json", output, err => { if (err) throw (err); });
+        lstat(cwd() + options.output, (err, stats) => {
+            if (err) {
+                mkdir(cwd() + options.output, err => { if(err) throw err; });
+            }
+
+            writeFile(cwd() + options.output + "/" + options.outputFile, output, err => { if (err) throw (err); });
+        });
     }
 });

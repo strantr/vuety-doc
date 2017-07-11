@@ -22,8 +22,6 @@ interface Options {
 
 const options = commandLineArgs(optionDefinitions) as Options;
 
-console.log(options);
-
 if (!options.input || !options.input.length) {
     throw new Error("No input files specified");
 }
